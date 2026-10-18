@@ -1,0 +1,4 @@
+google-generativeai
+pyttsx3
+pyautogui
+Pillow
