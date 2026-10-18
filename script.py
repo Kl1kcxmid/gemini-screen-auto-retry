@@ -1,3 +1,4 @@
+import os
 import time
 import random
 import pyttsx3
@@ -14,38 +15,41 @@ def speak(text):
     engine.say(text)
     engine.runAndWait()
 
-# Настройка API (вставь свой ключ вместо заглушки)
+# Настройка API
 genai.configure(api_key="YOUR_GEMINI_API_KEY")
-model = genai.GenerativeModel('gemini-3.8-flash')
+# Используем 1.5-flash с высоким дневным лимитом
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-print("Запуск: скрипт сделает скриншот через 3 секунды...")
+desktop_path = os.path.expanduser("~/Desktop")
 
 while True:
     try:
         print("\nГотовь экран! Пауза 3 секунды...")
-        time.sleep(3)  # Задержка, чтобы успеть развернуть
+        time.sleep(3)
         
-        # 1. Делаем скриншот
-        screenshot_path = "screen.png"
+        rand_id = random.randint(1000, 9999)
+        screenshot_path = os.path.join(desktop_path, f"screen_{rand_id}.png")
+        
         pyautogui.screenshot(screenshot_path)
         
-        # 2. Формируем запрос
-        rand_id = random.randint(1000, 9999)
         prompt = f"Кто или что изображено на этом скриншоте экрана? Опиши подробно. ReqID: {rand_id}"
         
-        # 3. Открываем картинку и отправляем в Gemini
-        img = PIL.Image.open(screenshot_path)
-        response = model.generate_content([prompt, img])
+        with PIL.Image.open(screenshot_path) as img:
+            response = model.generate_content([prompt, img])
         
         result_text = response.text
         print("\n=== УСПЕХ! Ответ от сервера ===")
         print(result_text)
         
         speak("Скриншот успешно обработан!")
-        speak(result_text[:700])  # Озвучить первые 700 символов
+        speak(result_text[:700])
         
-        break
+        if os.path.exists(screenshot_path):
+            os.remove(screenshot_path)
+            
+        print("\nСледующая проверка через 15 секунд...")
+        time.sleep(15)  # Пауза между успешными запросами
 
     except Exception as e:
-        print(f"[{time.strftime('%H:%M:%S')}] Ошибка/Перегрузка: {e}. Повтор через 2 сек...")
-        time.sleep(2)
+        print(f"[{time.strftime('%H:%M:%S')}] Ошибка/Перегрузка: {e}. Повтор через 20 сек...")
+        time.sleep(20)  # Чтобы скрипт не атаковал сервер при ошибках
