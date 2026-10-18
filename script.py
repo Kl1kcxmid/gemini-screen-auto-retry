@@ -14,26 +14,27 @@ def speak(text):
     engine.say(text)
     engine.runAndWait()
 
-# Настройка API
+# Настройка API (вставь свой ключ вместо заглушки)
 genai.configure(api_key="YOUR_GEMINI_API_KEY")
 model = genai.GenerativeModel('gemini-3.8-flash')
 
-print("Запуск: скрипт сам делает скриншот и отправляет в Gemini (интервал 2 сек)...")
+print("Запуск: скрипт сделает скриншот через 3 секунды...")
 
 while True:
     try:
-        # 1. Делаем автоматический скриншот рабочего стола
+        print("\nГотовь экран! Пауза 3 секунды...")
+        time.sleep(3)  # Задержка, чтобы успеть развернуть
+        
+        # 1. Делаем скриншот
         screenshot_path = "screen.png"
         pyautogui.screenshot(screenshot_path)
         
-        # 2. Формируем запрос с уникальным ID
+        # 2. Формируем запрос
         rand_id = random.randint(1000, 9999)
-        prompt = f"Кто или что изображено на этом скриншоте экрана? Опиши кратко и точно. ReqID: {rand_id}"
+        prompt = f"Кто или что изображено на этом скриншоте экрана? Опиши подробно. ReqID: {rand_id}"
         
-        # 3. Открываем сохранённый скриншот
+        # 3. Открываем картинку и отправляем в Gemini
         img = PIL.Image.open(screenshot_path)
-        
-        # 4. Отправляем запрос вместе с картинкой
         response = model.generate_content([prompt, img])
         
         result_text = response.text
@@ -41,9 +42,9 @@ while True:
         print(result_text)
         
         speak("Скриншот успешно обработан!")
-        speak(result_text[:500])
+        speak(result_text[:700])  # Озвучить первые 700 символов
         
-        break  # Закомментируй или убери этой строчку, если хочешь, чтобы он постоянно анализировал экран в цикле
+        break
 
     except Exception as e:
         print(f"[{time.strftime('%H:%M:%S')}] Ошибка/Перегрузка: {e}. Повтор через 2 сек...")
